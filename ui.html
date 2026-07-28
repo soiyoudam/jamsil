@@ -116,7 +116,7 @@ async function load(first){
     $("#schoolName").textContent=SCHOOL+" 업무 흐름 보드";
     const es=$("#editState");
     if(CANEDIT){es.textContent="✏️ 편집 가능"+(r.email?" · "+r.email:"");es.classList.add("on");}
-    else{es.textContent="👁 보기 전용 — 편집하려면 학교 구글계정으로 로그인"+(r.hasPw?" (또는 비밀번호 입력: 화면 클릭)":"");es.classList.remove("on");
+    else{es.textContent="👁 보기 전용 — 편집하려면 학교 구글계정으로 로그인"+(r.email?" (현재: "+r.email+")":" (로그인 미감지)")+(r.hasPw?" · 비밀번호 입력: 여기 클릭":"");es.classList.remove("on");
       if(r.hasPw)es.style.cursor="pointer",es.onclick=async()=>{const p=prompt("편집 비밀번호를 입력하세요");if(p){localStorage.setItem("boardPw",p);load();}};}
     if(first){const ys=[...new Set(CARDS.map(c=>schoolYearOf(c.m)))].sort();selYear=ys[ys.length-1]||String(new Date().getFullYear());}
     $("#loading").style.display="none";
