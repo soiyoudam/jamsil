@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root{--bg:#eef1f6;--card:#fff;--ink:#1f2937;--sub:#6b7280;--line:#e5e7eb;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--ink);}
+  header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);padding:12px 20px 10px;}
+  header h1{font-size:18px;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  header h1 small{font-size:12px;color:var(--sub);font-weight:normal;}
+  #editState{font-size:11px;border-radius:10px;padding:2px 9px;background:#fef3c7;color:#92400e;}
+  #editState.on{background:#dcfce7;color:#166534;}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;}
+  #search{flex:0 0 240px;padding:7px 12px;border:1px solid var(--line);border-radius:20px;font-size:13px;outline:none;}
+  #search:focus{border-color:#94a3b8;}
+  .toggle{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--sub);cursor:pointer;user-select:none;}
+  #count{font-size:12px;color:var(--sub);margin-left:auto;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .ytabs{display:flex;gap:4px;background:#eef1f6;border-radius:10px;padding:3px;}
+  .ytab{border:none;background:transparent;border-radius:8px;padding:5px 14px;font-size:13px;font-weight:bold;color:#64748b;cursor:pointer;}
+  .ytab.on{background:#334155;color:#fff;}
+  .chip-btn{border:1.5px solid var(--c,#999);color:var(--c,#555);background:#fff;border-radius:14px;padding:3px 10px;font-size:12px;cursor:pointer;}
+  .chip-btn.on{background:var(--c,#555);color:#fff;}
+  #board{display:flex;gap:14px;overflow-x:auto;padding:16px 20px 30px;align-items:flex-start;min-height:calc(100vh - 140px);}
+  .col{flex:0 0 300px;background:#e4e9f2;border-radius:12px;padding:10px;}
+  .col h2{font-size:14px;padding:2px 4px 8px;display:flex;justify-content:space-between;align-items:center;color:#374151;}
+  .col h2 .n{font-size:11px;background:#fff;border-radius:10px;padding:1px 8px;color:var(--sub);}
+  .addbtn{border:1px dashed #94a3b8;background:transparent;color:#64748b;border-radius:8px;padding:6px;font-size:12px;cursor:pointer;width:100%;margin-bottom:8px;}
+  .addbtn:hover{background:#f8fafc;}
+  .cards{display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 250px);overflow-y:auto;padding-right:2px;}
+  .card{background:var(--card);border-radius:10px;padding:10px 12px;box-shadow:0 1px 2px rgba(0,0,0,.08);cursor:pointer;border-left:4px solid var(--c,#999);position:relative;}
+  .card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;}
+  .date{font-size:11px;font-weight:bold;color:#475569;background:#f1f5f9;border-radius:6px;padding:1px 6px;}
+  .dept{font-size:11px;color:#fff;background:var(--c,#999);border-radius:6px;padding:1px 7px;}
+  .rec{font-size:10.5px;color:#0369a1;background:#e0f2fe;border-radius:6px;padding:1px 6px;}
+  .card h3{font-size:13.5px;line-height:1.35;margin-bottom:5px;padding-right:44px;}
+  .card p{font-size:12px;color:#4b5563;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .card.open p{display:block;-webkit-line-clamp:unset;}
+  .mgr{font-size:11px;color:var(--sub);margin-top:6px;}
+  .tools{position:absolute;top:8px;right:8px;display:none;gap:4px;}
+  .card:hover .tools{display:flex;}
+  .tools button{border:none;background:#f1f5f9;border-radius:6px;font-size:12px;cursor:pointer;padding:2px 6px;}
+  .tools button:hover{background:#e2e8f0;}
+  #overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-start;justify-content:center;z-index:50;padding:40px 16px;}
+  #overlay.show{display:flex;}
+  #modal{background:#fff;border-radius:14px;padding:20px;width:520px;max-width:100%;max-height:85vh;overflow-y:auto;}
+  #modal h2{font-size:16px;margin-bottom:14px;}
+  .frow{margin-bottom:10px;}
+  .frow label{display:block;font-size:12px;color:var(--sub);margin-bottom:4px;}
+  .frow input[type=text],.frow select,.frow textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;}
+  .frow textarea{height:110px;resize:vertical;}
+  .fgrid{display:flex;gap:8px;}
+  .fgrid .frow{flex:1;}
+  .mbtns{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
+  .mbtns button{border:none;border-radius:8px;padding:8px 18px;font-size:13px;cursor:pointer;}
+  #mSave{background:#334155;color:#fff;}
+  #mCancel{background:#f1f5f9;}
+  #loading{text-align:center;padding:60px;color:var(--sub);font-size:14px;}
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#334155;color:#fff;border-radius:20px;padding:8px 20px;font-size:13px;display:none;z-index:60;}
+</style>
+</head>
+<body>
+<header>
+  <h1>📋 <span id="schoolName">업무 흐름 보드</span> <small>부서별 업무 안내 · 인수인계용</small> <span id="editState">확인 중…</span></h1>
+  <div class="controls">
+    <div class="ytabs" id="ytabs"></div>
+    <input id="search" type="text" placeholder="🔍 업무명·내용·담당 검색">
+    <label class="toggle"><input type="checkbox" id="recOnly"> 매년 반복 업무만</label>
+    <span id="count"></span>
+  </div>
+  <div class="chips" id="chips"></div>
+</header>
+<div id="loading">데이터를 불러오는 중입니다…</div>
+<div id="board"></div>
+
+<div id="overlay"><div id="modal">
+  <h2 id="mTitle">카드 추가</h2>
+  <div class="fgrid">
+    <div class="frow"><label>학년도</label><select id="fYear"></select></div>
+    <div class="frow"><label>월</label><select id="fMonth"></select></div>
+    <div class="frow"><label>날짜 (예: 3/4)</label><input type="text" id="fDate"></div>
+  </div>
+  <div class="fgrid">
+    <div class="frow"><label>부서</label><input type="text" id="fDept" list="deptList"><datalist id="deptList"></datalist></div>
+    <div class="frow"><label>담당 업무 (예: 고사계)</label><input type="text" id="fRole"></div>
+  </div>
+  <div class="frow"><label>업무명 (카드 제목)</label><input type="text" id="fTitle"></div>
+  <div class="frow"><label>안내 내용</label><textarea id="fContent"></textarea></div>
+  <div class="frow"><label class="toggle" style="font-size:13px;color:var(--ink)"><input type="checkbox" id="fRec"> 매년 반복되는 정례 업무</label></div>
+  <div class="mbtns"><button id="mCancel">취소</button><button id="mSave">저장</button></div>
+</div></div>
+<div id="toast"></div>
+
+<script>
+const COLORS={"교무기획부":"#4f79d9","교육연구부":"#2e9e6b","과학정보부":"#7a5fd0","체육안전부":"#e07a2f","진로교육부":"#0ea5b5","상담복지부":"#d0568f","창의인문부":"#b58a2a","1학년부":"#5aa02c","2학년부":"#3d8f8f","3학년부":"#8a6bbf","생활지도부":"#c25353","행정실":"#606a7b","보건":"#e04f6f","도서관":"#8b6f47","교장·교감":"#334155","위클래스":"#d0568f"};
+const MORDER=["03","04","05","06","07","08","09","10","11","12","01","02"];
+const MLABEL={"03":"3월","04":"4월","05":"5월","06":"6월","07":"7월","08":"8월","09":"9월","10":"10월","11":"11월","12":"12월","01":"1월","02":"2월"};
+let CARDS=[],CANEDIT=false,SCHOOL="업무 흐름 보드",selYear=null,selDept=null,editingId=null;
+const $=s=>document.querySelector(s);
+
+function gs(fn,...args){return new Promise((res,rej)=>{google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args);});}
+function pw(){return localStorage.getItem("boardPw")||"";}
+function toast(msg){const t=$("#toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",2200);}
+function baseDept(d){let b=String(d).split("(")[0].split("·")[0].trim();if(b==="교감"||b==="교장")return "교장·교감";return b;}
+function schoolYearOf(mkey){const [y,m]=mkey.split("-");return m>="03"?y:String(Number(y)-1);}
+function mkeyOf(sy,mm){return (mm>="03"?sy:String(Number(sy)+1))+"-"+mm;}
+function colorOf(d){return COLORS[baseDept(d)]||"#777";}
+function escH(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+async function load(first){
+  try{
+    const r=await gs("getData",pw());
+    CARDS=r.cards;CANEDIT=r.canEdit;SCHOOL=r.school||SCHOOL;
+    document.title=SCHOOL+" 업무 흐름 보드";
+    $("#schoolName").textContent=SCHOOL+" 업무 흐름 보드";
+    const es=$("#editState");
+    if(CANEDIT){es.textContent="✏️ 편집 가능"+(r.email?" · "+r.email:"");es.classList.add("on");}
+    else{es.textContent="👁 보기 전용 — 편집하려면 학교 구글계정으로 로그인"+(r.hasPw?" (또는 비밀번호 입력: 화면 클릭)":"");es.classList.remove("on");
+      if(r.hasPw)es.style.cursor="pointer",es.onclick=async()=>{const p=prompt("편집 비밀번호를 입력하세요");if(p){localStorage.setItem("boardPw",p);load();}};}
+    if(first){const ys=[...new Set(CARDS.map(c=>schoolYearOf(c.m)))].sort();selYear=ys[ys.length-1]||String(new Date().getFullYear());}
+    $("#loading").style.display="none";
+    buildYearTabs();buildChips();render();
+  }catch(e){$("#loading").textContent="불러오기 실패: "+(e.message||e);}
+}
+
+function years(){const ys=[...new Set(CARDS.map(c=>schoolYearOf(c.m)))].sort();if(!ys.includes(selYear))ys.push(selYear);return ys.sort();}
+function buildYearTabs(){
+  const box=$("#ytabs");box.innerHTML="";
+  for(const y of years()){
+    const b=document.createElement("button");b.className="ytab"+(y===selYear?" on":"");b.textContent=y+"학년도";
+    b.onclick=()=>{selYear=y;buildYearTabs();render();};box.appendChild(b);
+  }
+}
+function buildChips(){
+  const depts=[...new Set(CARDS.map(c=>baseDept(c.dept)))];
+  const order=Object.keys(COLORS).filter(d=>depts.includes(d)).concat(depts.filter(d=>!COLORS[d]));
+  const box=$("#chips");box.innerHTML="";
+  const mk=(label,d)=>{const b=document.createElement("button");b.className="chip-btn"+((d===selDept)||(d===null&&selDept===null)?" on":"");b.textContent=label;b.style.setProperty("--c",d?COLORS[d]||"#777":"#334155");b.onclick=()=>{selDept=(selDept===d?null:d);buildChips();render();};box.appendChild(b);};
+  mk("전체",null);order.forEach(d=>mk(d,d));
+  const dl=$("#deptList");dl.innerHTML="";depts.forEach(d=>{const o=document.createElement("option");o.value=d;dl.appendChild(o);});
+}
+function render(){
+  const q=$("#search").value.trim().toLowerCase(),recOnly=$("#recOnly").checked;
+  const board=$("#board");board.innerHTML="";let total=0;
+  const yearCards=CARDS.filter(c=>schoolYearOf(c.m)===selYear);
+  for(const mm of MORDER){
+    const key=mkeyOf(selYear,mm);
+    const items=yearCards.filter(c=>c.m===key)
+      .filter(c=>!selDept||baseDept(c.dept)===selDept)
+      .filter(c=>!recOnly||c.r)
+      .filter(c=>!q||(c.t+c.c+c.role+c.dept).toLowerCase().includes(q))
+      .sort((a,b)=>{const p=s=>{const x=String(s).split("/");return Number(x[1]||0)+Number(x[0]||0)*100;};return p(a.d)-p(b.d);});
+    total+=items.length;
+    if(!items.length&&(q||selDept||recOnly))continue;
+    const col=document.createElement("div");col.className="col";
+    col.innerHTML=`<h2>${MLABEL[mm]} <span class="n">${items.length}건</span></h2>`;
+    if(CANEDIT){const ab=document.createElement("button");ab.className="addbtn";ab.textContent="＋ 카드 추가";ab.onclick=()=>openModal(null,mm);col.appendChild(ab);}
+    const wrap=document.createElement("div");wrap.className="cards";
+    for(const c of items){
+      const color=colorOf(c.dept);
+      const card=document.createElement("div");card.className="card";card.style.setProperty("--c",color);
+      card.innerHTML=`<div class="card-top"><span class="date">${escH(c.d)}</span><span class="dept" style="--c:${color}">${escH(c.dept)}</span>${c.r?'<span class="rec">↻ 매년 반복</span>':''}</div>
+        <h3>${escH(c.t)}</h3><p>${escH(c.c)}</p><div class="mgr">담당: ${escH(c.role)}</div>`;
+      if(CANEDIT){
+        const tools=document.createElement("div");tools.className="tools";
+        const eb=document.createElement("button");eb.textContent="✏️";eb.title="수정";eb.onclick=ev=>{ev.stopPropagation();openModal(c);};
+        const db=document.createElement("button");db.textContent="🗑";db.title="삭제";db.onclick=async ev=>{ev.stopPropagation();
+          if(!confirm(`이 카드를 삭제할까요?\n[${c.t}]`))return;
+          try{await gs("deleteCard",c.id,pw());toast("삭제되었습니다");load();}catch(e){toast("삭제 실패: "+(e.message||e));}};
+        tools.append(eb,db);card.appendChild(tools);
+      }
+      card.onclick=()=>card.classList.toggle("open");
+      wrap.appendChild(card);
+    }
+    col.appendChild(wrap);board.appendChild(col);
+  }
+  $("#count").textContent=`표시 중: ${total}건 / ${selYear}학년도 ${yearCards.length}건`;
+}
+
+function openModal(card,mm){
+  editingId=card?card.id:null;
+  $("#mTitle").textContent=card?"카드 수정":"카드 추가";
+  const fy=$("#fYear");fy.innerHTML="";
+  const ys=new Set(years());ys.add(String(Number(selYear)+1));
+  [...ys].sort().forEach(y=>{const o=document.createElement("option");o.value=y;o.textContent=y+"학년도";fy.appendChild(o);});
+  const fm=$("#fMonth");fm.innerHTML="";
+  MORDER.forEach(m2=>{const o=document.createElement("option");o.value=m2;o.textContent=MLABEL[m2];fm.appendChild(o);});
+  if(card){fy.value=schoolYearOf(card.m);fm.value=card.m.split("-")[1];$("#fDate").value=card.d;$("#fDept").value=card.dept;$("#fRole").value=card.role;$("#fTitle").value=card.t;$("#fContent").value=card.c;$("#fRec").checked=!!card.r;}
+  else{fy.value=selYear;fm.value=mm||"03";$("#fDate").value="";$("#fDept").value=selDept||"";$("#fRole").value="";$("#fTitle").value="";$("#fContent").value="";$("#fRec").checked=true;}
+  $("#overlay").classList.add("show");
+}
+$("#mCancel").onclick=()=>$("#overlay").classList.remove("show");
+$("#overlay").onclick=e=>{if(e.target.id==="overlay")$("#overlay").classList.remove("show");};
+$("#mSave").onclick=async()=>{
+  const c={id:editingId,m:mkeyOf($("#fYear").value,$("#fMonth").value),d:$("#fDate").value.trim(),dept:$("#fDept").value.trim(),role:$("#fRole").value.trim(),t:$("#fTitle").value.trim(),c:$("#fContent").value.trim(),r:$("#fRec").checked};
+  if(!c.t){alert("업무명을 입력해 주세요.");return;}
+  if(!c.dept){alert("부서를 입력해 주세요.");return;}
+  $("#mSave").disabled=true;
+  try{
+    if(editingId)await gs("updateCard",c,pw());else await gs("addCard",c,pw());
+    $("#overlay").classList.remove("show");toast("저장되었습니다");load();
+  }catch(e){alert("저장 실패: "+(e.message||e));}
+  $("#mSave").disabled=false;
+};
+$("#search").addEventListener("input",render);
+$("#recOnly").addEventListener("change",render);
+setInterval(()=>{if(!$("#overlay").classList.contains("show"))load();},60000);
+load(true);
+</script>
+</body>
+</html>
